@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { ApiClient } from '../../api/clients/api-client';
 import { AccountService } from '../../api/services/account-service';
+import { SchemaValidator } from '../../utils/schema-validator';
+import { accountSchema } from '../../schemas/account.schema';
+
 
 test.describe('Account API', () => {
   test('should retrieve an existing account', async ({ request }) => {
@@ -14,13 +17,20 @@ test.describe('Account API', () => {
 
     const account = await response.json();
 
+    const schemaValidator: SchemaValidator = new SchemaValidator();
+
+    schemaValidator.assertValid(
+      accountSchema,
+      account
+    );
+
     expect(account).toMatchObject({
       id: 54321,
       customerId: 12212,
       type: 'CHECKING'
     });
 
-    expect(typeof account.balance).toBe('number');
+     expect(typeof account.balance).toBe('number');
   });
 
   test('should reject a request for a non-existent account', async ({ request }) => {

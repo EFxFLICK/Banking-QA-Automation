@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { ApiClient } from '../../api/clients/api-client';
 import { TransactionService } from '../../api/services/transaction-service';
+import { SchemaValidator } from '../../utils/schema-validator';
+import { transactionSchema } from '../../schemas/transaction.schema';
+import { transactionListSchema } from '../../schemas/transaction-list.schema';
 
 test.describe('Transaction API', () => {
   test('should retrieve transactions for an existing account', async ({ request }) => {
@@ -17,13 +20,15 @@ test.describe('Transaction API', () => {
     expect(Array.isArray(transactions)).toBe(true);
     expect(transactions.length).toBeGreaterThan(0);
 
-    for (const transaction of transactions) {
-      expect(transaction).toMatchObject({
-        accountId: 54321
-      });
+    const schemaValidator: SchemaValidator = new SchemaValidator();
 
-      expect(typeof transaction.id).toBe('number');
-      expect(typeof transaction.amount).toBe('number');
+      schemaValidator.assertValid(
+      transactionListSchema,
+      transactions
+    );
+
+    for (const transaction of transactions) {
+      expect(transaction.accountId).toBe(54321);
     }
   });
 

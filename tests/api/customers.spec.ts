@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { ApiClient } from '../../api/clients/api-client';
 import { CustomerService } from '../../api/services/customer-service';
+import { SchemaValidator } from '../../utils/schema-validator';
+import { customerSchema } from '../../schemas/customer.schema';
+import { accountListSchema } from '../../schemas/account-list.schema';
 
 test.describe('Customer API', () => {
   test('should retrieve an existing customer', async ({ request }) => {
@@ -14,12 +17,20 @@ test.describe('Customer API', () => {
 
     const customer = await response.json();
 
+    const schemaValidator: SchemaValidator = new SchemaValidator();
+
+     schemaValidator.assertValid(
+     customerSchema,
+     customer
+    );
+
     expect(customer).toMatchObject({
-      id: 12212,
-      firstName: 'John',
-      lastName: 'Smith'
+     id: 12212,
+     firstName: 'John',
+     lastName: 'Smith'
     });
-  });
+
+});
 
   test('should retrieve all accounts for an existing customer', async ({ request }) => {
     const apiClient = new ApiClient(request);
@@ -32,18 +43,17 @@ test.describe('Customer API', () => {
 
     const accounts = await response.json();
 
-    expect(Array.isArray(accounts)).toBe(true);
+    const schemaValidator: SchemaValidator = new SchemaValidator();
+
+      schemaValidator.assertValid(
+      accountListSchema,
+      accounts
+    );
+
     expect(accounts.length).toBeGreaterThan(0);
 
     for (const account of accounts) {
-      expect(account).toMatchObject({
-        customerId: 12212
-      });
-
-      expect(typeof account.id).toBe('number');
-      expect(typeof account.customerId).toBe('number');
-      expect(typeof account.type).toBe('string');
-      expect(typeof account.balance).toBe('number');
+      expect(account.customerId).toBe(12212);
     }
   });
 
