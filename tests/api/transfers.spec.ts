@@ -80,4 +80,58 @@ test.describe('Transfer API', () => {
     'Could not find account number 999999999 and/or 13122'
   );
 });
+
+test('should accept a zero-amount transfer without changing balances', async ({
+  request
+}) => {
+  const apiClient = new ApiClient(request);
+  const accountService = new AccountService(apiClient);
+  const transferService = new TransferService(apiClient);
+
+  const fromAccountId = 54321;
+  const toAccountId = 13122;
+  const transferAmount = 0;
+
+  const sourceBeforeResponse =
+    await accountService.getAccount(fromAccountId);
+
+  const targetBeforeResponse =
+    await accountService.getAccount(toAccountId);
+
+  expect(sourceBeforeResponse.status()).toBe(200);
+  expect(targetBeforeResponse.status()).toBe(200);
+
+  const sourceBefore = await sourceBeforeResponse.json();
+  const targetBefore = await targetBeforeResponse.json();
+
+  const response = await transferService.transfer(
+    fromAccountId,
+    toAccountId,
+    transferAmount
+  );
+
+  expect(response.status()).toBe(200);
+  expect(response.headers()['content-type']).toContain('application/json');
+
+  const responseBody = await response.text();
+
+  expect(responseBody).toBe(
+   'Successfully transferred $0 from account #54321 to account #13122'
+  );
+
+  const sourceAfterResponse =
+    await accountService.getAccount(fromAccountId);
+
+  const targetAfterResponse =
+    await accountService.getAccount(toAccountId);
+
+  expect(sourceAfterResponse.status()).toBe(200);
+  expect(targetAfterResponse.status()).toBe(200);
+
+  const sourceAfter = await sourceAfterResponse.json();
+  const targetAfter = await targetAfterResponse.json();
+
+  expect(sourceAfter.balance).toBe(sourceBefore.balance);
+  expect(targetAfter.balance).toBe(targetBefore.balance);
+});
 });
