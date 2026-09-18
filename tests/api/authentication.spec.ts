@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { ApiClient } from '../../api/clients/api-client';
 import { AuthenticationService } from '../../api/services/authentication-service';
+import { SchemaValidator } from '../../utils/schema-validator';
+import { customerSchema } from '../../schemas/customer.schema';
 
 test.describe('Authentication API', () => {
   test('should authenticate with valid credentials', async ({ request }) => {
@@ -8,15 +10,23 @@ test.describe('Authentication API', () => {
     const authenticationService = new AuthenticationService(apiClient);
 
     const response = await authenticationService.login('john', 'demo');
-    const responseBody = await response.text();
+    const responseBody = await response.json();
 
     expect(response.status()).toBe(200);
-    expect(response.headers()['content-type']).toContain('application/xml');
+    expect(response.headers()['content-type']).toContain('application/json');
 
-    expect(responseBody).toContain('<customer>');
-    expect(responseBody).toContain('<id>12212</id>');
-    expect(responseBody).toContain('<firstName>John</firstName>');
-    expect(responseBody).toContain('<lastName>Smith</lastName>');
+    const schemaValidator: SchemaValidator = new SchemaValidator();
+
+      schemaValidator.assertValid(
+      customerSchema,
+      responseBody
+    );
+
+    expect(responseBody).toMatchObject({
+      id: 12212,
+      firstName: 'John',
+      lastName: 'Smith'
+    });
   });
 
   test('should reject invalid password', async ({ request }) => {

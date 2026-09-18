@@ -11,7 +11,10 @@ export class AuthenticationService {
     password: string
   ): Promise<APIResponse> {
     return this.apiClient.get(
-      `/parabank/services/bank/login/${encodeURIComponent(username)}/${encodeURIComponent(password)}`
-    );
+      `/parabank/services/bank/login/${encodeURIComponent(username)}/${encodeURIComponent(password)}`,
+    {
+       Accept: 'application/json'
+    }
+  );
   }
 }
