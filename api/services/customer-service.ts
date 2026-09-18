@@ -1,5 +1,6 @@
 import { APIResponse } from '@playwright/test';
 import { ApiClient } from '../clients/api-client';
+import { Account } from '../models/account';
 import { Customer } from '../models/customer';
 
 export class CustomerService {
@@ -30,5 +31,30 @@ export class CustomerService {
     }
 
     return response.json() as Promise<Customer>;
+  }
+
+  public async getCustomerAccounts(
+    customerId: number
+  ): Promise<APIResponse> {
+    return this.apiClient.get(
+      `/parabank/services/bank/customers/${customerId}/accounts`,
+      {
+        Accept: 'application/json'
+      }
+    );
+  }
+
+  public async getCustomerAccountsData(
+    customerId: number
+  ): Promise<Account[]> {
+    const response = await this.getCustomerAccounts(customerId);
+
+    if (!response.ok()) {
+      throw new Error(
+        `Failed to retrieve accounts for customer ${customerId}: HTTP ${response.status()}`
+      );
+    }
+
+    return response.json() as Promise<Account[]>;
   }
 }
