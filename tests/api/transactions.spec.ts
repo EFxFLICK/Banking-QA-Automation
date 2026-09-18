@@ -45,4 +45,20 @@ test.describe('Transaction API', () => {
     expect(typeof transaction.description).toBe('string');
   }
 });
+
+test('should reject transactions for a non-existent account', async ({ request }) => {
+  const apiClient = new ApiClient(request);
+  const transactionService = new TransactionService(apiClient);
+
+  const response =
+    await transactionService.getTransactions(999999999);
+
+  const responseBody = await response.text();
+
+  expect(response.status()).toBe(400);
+  expect(response.headers()['content-type']).toContain('text/plain');
+  expect(responseBody).toBe(
+   'Could not find transactions for account #999999999'
+   );
+});
 });
