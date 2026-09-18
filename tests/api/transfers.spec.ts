@@ -59,4 +59,25 @@ test.describe('Transfer API', () => {
       2
     );
   });
+
+  test('should reject a transfer from a non-existent source account', async ({
+  request
+}) => {
+  const apiClient = new ApiClient(request);
+  const transferService = new TransferService(apiClient);
+
+  const response = await transferService.transfer(
+    999999999,
+    13122,
+    1
+  );
+
+  const responseBody = await response.text();
+
+  expect(response.status()).toBe(400);
+  expect(response.headers()['content-type']).toContain('text/plain');
+  expect(responseBody).toBe(
+    'Could not find account number 999999999 and/or 13122'
+  );
+});
 });
