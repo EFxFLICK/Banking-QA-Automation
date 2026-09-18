@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { ApiClient } from '../../api/clients/api-client';
 import { AccountService } from '../../api/services/account-service';
 import { TransferService } from '../../api/services/transfer-service';
+import { SchemaValidator } from '../../utils/schema-validator';
+import { transferResponseSchema } from '../../schemas/transfer-response.schema';
 
 test.describe.configure({ mode: 'serial' });
 test.describe('Transfer API', () => {
@@ -38,6 +40,13 @@ test.describe('Transfer API', () => {
 
     expect(transferBody.length).toBeGreaterThan(0);
 
+    const schemaValidator: SchemaValidator = new SchemaValidator();
+
+      schemaValidator.assertValid(
+      transferResponseSchema,
+      transferBody
+    );
+
     const sourceAfterResponse =
       await accountService.getAccount(fromAccountId);
 
@@ -59,6 +68,7 @@ test.describe('Transfer API', () => {
       targetBefore.balance + transferAmount,
       2
     );
+  
   });
 
   test('should reject a transfer from a non-existent source account', async ({
@@ -116,8 +126,15 @@ test('should accept a zero-amount transfer without changing balances', async ({
 
   const responseBody = await response.text();
 
+  const schemaValidator: SchemaValidator = new SchemaValidator();
+
+    schemaValidator.assertValid(
+    transferResponseSchema,
+    responseBody
+  );
+
   expect(responseBody).toBe(
-   'Successfully transferred $0 from account #54321 to account #13122'
+    'Successfully transferred $0 from account #54321 to account #13122'
   );
 
   const sourceAfterResponse =
@@ -166,6 +183,14 @@ test('should expose negative amount transfer behavior', async ({ request }) => {
   const responseBody = await response.text();
 
   expect(response.status()).toBe(200);
+
+  const schemaValidator: SchemaValidator = new SchemaValidator();
+
+    schemaValidator.assertValid(
+    transferResponseSchema,
+    responseBody
+  );
+
   expect(responseBody).toBe(
     'Successfully transferred $-1 from account #54321 to account #13122'
   );
