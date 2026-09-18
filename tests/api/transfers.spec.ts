@@ -3,6 +3,7 @@ import { ApiClient } from '../../api/clients/api-client';
 import { AccountService } from '../../api/services/account-service';
 import { TransferService } from '../../api/services/transfer-service';
 
+test.describe.configure({ mode: 'serial' });
 test.describe('Transfer API', () => {
   test('should transfer money between existing accounts', async ({ request }) => {
     const apiClient = new ApiClient(request);
