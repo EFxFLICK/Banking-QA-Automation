@@ -1,16 +1,13 @@
-import { test, expect } from '@playwright/test';
-import { ApiClient } from '../../api/clients/api-client';
-import { AccountService } from '../../api/services/account-service';
-import { TransferService } from '../../api/services/transfer-service';
+import { test, expect } from '../../fixtures/api.fixture';
 import { SchemaValidator } from '../../utils/schema-validator';
 import { transferResponseSchema } from '../../schemas/transfer-response.schema';
 
 test.describe.configure({ mode: 'serial' });
 test.describe('Transfer API', () => {
-  test('should transfer money between existing accounts', async ({ request }) => {
-    const apiClient = new ApiClient(request);
-    const accountService = new AccountService(apiClient);
-    const transferService = new TransferService(apiClient);
+  test('should transfer money between existing accounts', async ({
+    accountService,
+    transferService
+  }) => {
 
     const fromAccountId = 54321;
     const toAccountId = 13122;
@@ -72,10 +69,8 @@ test.describe('Transfer API', () => {
   });
 
   test('should reject a transfer from a non-existent source account', async ({
-  request
-}) => {
-  const apiClient = new ApiClient(request);
-  const transferService = new TransferService(apiClient);
+    transferService
+  }) => {
 
   const response = await transferService.transfer(
     999999999,
@@ -92,127 +87,124 @@ test.describe('Transfer API', () => {
   );
 });
 
-test('should accept a zero-amount transfer without changing balances', async ({
-  request
-}) => {
-  const apiClient = new ApiClient(request);
-  const accountService = new AccountService(apiClient);
-  const transferService = new TransferService(apiClient);
+  test('should accept a zero-amount transfer without changing balances', async ({
+    transferService,
+     accountService,
+  }) => {
 
-  const fromAccountId = 54321;
-  const toAccountId = 13122;
-  const transferAmount = 0;
+    const fromAccountId = 54321;
+    const toAccountId = 13122;
+    const transferAmount = 0;
 
-  const sourceBeforeResponse =
-    await accountService.getAccount(fromAccountId);
+    const sourceBeforeResponse =
+      await accountService.getAccount(fromAccountId);
 
-  const targetBeforeResponse =
-    await accountService.getAccount(toAccountId);
+    const targetBeforeResponse =
+      await accountService.getAccount(toAccountId);
 
-  expect(sourceBeforeResponse.status()).toBe(200);
-  expect(targetBeforeResponse.status()).toBe(200);
+    expect(sourceBeforeResponse.status()).toBe(200);
+    expect(targetBeforeResponse.status()).toBe(200);
 
-  const sourceBefore = await sourceBeforeResponse.json();
-  const targetBefore = await targetBeforeResponse.json();
+    const sourceBefore = await sourceBeforeResponse.json();
+    const targetBefore = await targetBeforeResponse.json();
 
-  const response = await transferService.transfer(
-    fromAccountId,
-    toAccountId,
-    transferAmount
-  );
+    const response = await transferService.transfer(
+      fromAccountId,
+      toAccountId,
+      transferAmount
+    );
 
-  expect(response.status()).toBe(200);
-  expect(response.headers()['content-type']).toContain('application/json');
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('application/json');
 
-  const responseBody = await response.text();
+    const responseBody = await response.text();
 
-  const schemaValidator: SchemaValidator = new SchemaValidator();
+    const schemaValidator: SchemaValidator = new SchemaValidator();
 
-    schemaValidator.assertValid(
-    transferResponseSchema,
-    responseBody
-  );
+      schemaValidator.assertValid(
+      transferResponseSchema,
+      responseBody
+      );
 
-  expect(responseBody).toBe(
-    'Successfully transferred $0 from account #54321 to account #13122'
-  );
+    expect(responseBody).toBe(
+      'Successfully transferred $0 from account #54321 to account #13122'
+    );
 
-  const sourceAfterResponse =
-    await accountService.getAccount(fromAccountId);
+    const sourceAfterResponse =
+     await accountService.getAccount(fromAccountId);
 
-  const targetAfterResponse =
-    await accountService.getAccount(toAccountId);
+    const targetAfterResponse =
+     await accountService.getAccount(toAccountId);
 
-  expect(sourceAfterResponse.status()).toBe(200);
-  expect(targetAfterResponse.status()).toBe(200);
+    expect(sourceAfterResponse.status()).toBe(200);
+    expect(targetAfterResponse.status()).toBe(200);
 
-  const sourceAfter = await sourceAfterResponse.json();
-  const targetAfter = await targetAfterResponse.json();
+    const sourceAfter = await sourceAfterResponse.json();
+    const targetAfter = await targetAfterResponse.json();
 
-  expect(sourceAfter.balance).toBe(sourceBefore.balance);
-  expect(targetAfter.balance).toBe(targetBefore.balance);
-});
+    expect(sourceAfter.balance).toBe(sourceBefore.balance);
+    expect(targetAfter.balance).toBe(targetBefore.balance);
+  });
 
-test('should expose negative amount transfer behavior', async ({ request }) => {
-  const apiClient = new ApiClient(request);
-  const accountService = new AccountService(apiClient);
-  const transferService = new TransferService(apiClient);
+  test('should expose negative amount transfer behavior', async ({
+    accountService,
+    transferService
+  }) => {
+    const fromAccountId = 54321;
+    const toAccountId = 13122;
+    const transferAmount = -1;
 
-  const fromAccountId = 54321;
-  const toAccountId = 13122;
-  const transferAmount = -1;
+    const sourceBeforeResponse =
+     await accountService.getAccount(fromAccountId);
 
-  const sourceBeforeResponse =
-    await accountService.getAccount(fromAccountId);
+    const targetBeforeResponse =
+     await accountService.getAccount(toAccountId);
 
-  const targetBeforeResponse =
-    await accountService.getAccount(toAccountId);
+    expect(sourceBeforeResponse.status()).toBe(200);
+    expect(targetBeforeResponse.status()).toBe(200);
 
-  expect(sourceBeforeResponse.status()).toBe(200);
-  expect(targetBeforeResponse.status()).toBe(200);
+   const sourceBefore = await sourceBeforeResponse.json();
+   const targetBefore = await targetBeforeResponse.json();
 
-  const sourceBefore = await sourceBeforeResponse.json();
-  const targetBefore = await targetBeforeResponse.json();
+   const response = await transferService.transfer(
+      fromAccountId,
+     toAccountId,
+     transferAmount
+    );
 
-  const response = await transferService.transfer(
-    fromAccountId,
-    toAccountId,
-    transferAmount
-  );
+    const responseBody = await response.text();
 
-  const responseBody = await response.text();
+    expect(response.status()).toBe(200);
 
-  expect(response.status()).toBe(200);
+    const schemaValidator: SchemaValidator = new SchemaValidator();
 
-  const schemaValidator: SchemaValidator = new SchemaValidator();
+      schemaValidator.assertValid(
+      transferResponseSchema,
+      responseBody
+    );
 
-    schemaValidator.assertValid(
-    transferResponseSchema,
-    responseBody
-  );
+    expect(responseBody).toBe(
+      'Successfully transferred $-1 from account #54321 to account #13122'
+    );
 
-  expect(responseBody).toBe(
-    'Successfully transferred $-1 from account #54321 to account #13122'
-  );
+    const sourceAfterResponse =
+     await accountService.getAccount(fromAccountId);
 
-  const sourceAfterResponse =
-    await accountService.getAccount(fromAccountId);
+    const targetAfterResponse =
+      await accountService.getAccount(toAccountId);
 
-  const targetAfterResponse =
-    await accountService.getAccount(toAccountId);
+    expect(sourceAfterResponse.status()).toBe(200);
+    expect(targetAfterResponse.status()).toBe(200);
 
-  expect(sourceAfterResponse.status()).toBe(200);
-  expect(targetAfterResponse.status()).toBe(200);
+    const sourceAfter = await sourceAfterResponse.json();
+    const targetAfter = await targetAfterResponse.json();
 
-  const sourceAfter = await sourceAfterResponse.json();
-  const targetAfter = await targetAfterResponse.json();
+    expect(sourceAfter.balance).toBe(
+      sourceBefore.balance + Math.abs(transferAmount)
+    );
 
-  expect(sourceAfter.balance).toBe(
-    sourceBefore.balance + Math.abs(transferAmount)
-  );
-
-  expect(targetAfter.balance).toBe(
-    targetBefore.balance - Math.abs(transferAmount)
-  );
-});
+    expect(targetAfter.balance).toBe(
+      targetBefore.balance - Math.abs(transferAmount)
+    );
+  });
 });

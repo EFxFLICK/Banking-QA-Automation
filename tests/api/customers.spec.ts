@@ -1,16 +1,13 @@
-import { test, expect } from '@playwright/test';
-import { ApiClient } from '../../api/clients/api-client';
-import { CustomerService } from '../../api/services/customer-service';
+import { test, expect } from '../../fixtures/api.fixture';
 import { SchemaValidator } from '../../utils/schema-validator';
 import { customerSchema } from '../../schemas/customer.schema';
 import { accountListSchema } from '../../schemas/account-list.schema';
 
 test.describe('Customer API', () => {
-  test('should retrieve an existing customer', async ({ request }) => {
-    const apiClient = new ApiClient(request);
-    const customerService = new CustomerService(apiClient);
-
-    const response = await customerService.getCustomer(12212);
+  test('should retrieve an existing customer', async ({
+  customerService
+}) => {
+  const response = await customerService.getCustomer(12212);
 
     expect(response.status()).toBe(200);
     expect(response.headers()['content-type']).toContain('application/json');
@@ -32,9 +29,7 @@ test.describe('Customer API', () => {
 
 });
 
-  test('should retrieve all accounts for an existing customer', async ({ request }) => {
-    const apiClient = new ApiClient(request);
-    const customerService = new CustomerService(apiClient);
+  test('should retrieve all accounts for an existing customer', async ({ customerService }) => {
 
     const response = await customerService.getCustomerAccounts(12212);
 
@@ -57,9 +52,7 @@ test.describe('Customer API', () => {
     }
   });
 
-  test('should reject account lookup for a non-existent customer', async ({ request }) => {
-    const apiClient = new ApiClient(request);
-    const customerService = new CustomerService(apiClient);
+  test('should reject account lookup for a non-existent customer', async ({ customerService }) => {
 
     const response =
       await customerService.getCustomerAccounts(999999999);
@@ -73,9 +66,7 @@ test.describe('Customer API', () => {
     );
   });
 
-  test('should return typed account models for a customer', async ({ request }) => {
-  const apiClient = new ApiClient(request);
-  const customerService = new CustomerService(apiClient);
+  test('should return typed account models for a customer', async ({ customerService }) => {
 
   const accounts =
     await customerService.getCustomerAccountsData(12212);

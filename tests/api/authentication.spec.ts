@@ -1,13 +1,11 @@
-import { test, expect } from '@playwright/test';
-import { ApiClient } from '../../api/clients/api-client';
-import { AuthenticationService } from '../../api/services/authentication-service';
+import { test, expect } from '../../fixtures/api.fixture';
 import { SchemaValidator } from '../../utils/schema-validator';
 import { customerSchema } from '../../schemas/customer.schema';
 
 test.describe('Authentication API', () => {
-  test('should authenticate with valid credentials', async ({ request }) => {
-    const apiClient = new ApiClient(request);
-    const authenticationService = new AuthenticationService(apiClient);
+  test('should authenticate with valid credentials', async ({
+    authenticationService
+  }) => {
 
     const response = await authenticationService.login('john', 'demo');
     const responseBody = await response.json();
@@ -29,9 +27,7 @@ test.describe('Authentication API', () => {
     });
   });
 
-  test('should reject invalid password', async ({ request }) => {
-    const apiClient = new ApiClient(request);
-    const authenticationService = new AuthenticationService(apiClient);
+  test('should reject invalid password', async ({ authenticationService }) => {
 
     const response = await authenticationService.login(
       'john',
@@ -45,9 +41,7 @@ test.describe('Authentication API', () => {
     expect(responseBody).toBe('Invalid username and/or password');
   });
 
-  test('should reject an unknown username', async ({ request }) => {
-    const apiClient = new ApiClient(request);
-    const authenticationService = new AuthenticationService(apiClient);
+  test('should reject an unknown username', async ({ authenticationService }) => {
 
     const response = await authenticationService.login(
       'unknownuser',

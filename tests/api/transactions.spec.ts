@@ -1,14 +1,12 @@
-import { test, expect } from '@playwright/test';
-import { ApiClient } from '../../api/clients/api-client';
-import { TransactionService } from '../../api/services/transaction-service';
+import { test, expect } from '../../fixtures/api.fixture';
 import { SchemaValidator } from '../../utils/schema-validator';
 import { transactionSchema } from '../../schemas/transaction.schema';
 import { transactionListSchema } from '../../schemas/transaction-list.schema';
 
 test.describe('Transaction API', () => {
-  test('should retrieve transactions for an existing account', async ({ request }) => {
-    const apiClient = new ApiClient(request);
-    const transactionService = new TransactionService(apiClient);
+  test('should retrieve transactions for an existing account', async ({
+    transactionService
+  }) => {
 
     const response = await transactionService.getTransactions(54321);
 
@@ -32,9 +30,7 @@ test.describe('Transaction API', () => {
     }
   });
 
-  test('should return typed transaction models', async ({ request }) => {
-  const apiClient = new ApiClient(request);
-  const transactionService = new TransactionService(apiClient);
+  test('should return typed transaction models', async ({ transactionService }) => {
 
   const transactions =
     await transactionService.getTransactionData(54321);
@@ -51,9 +47,7 @@ test.describe('Transaction API', () => {
   }
 });
 
-test('should reject transactions for a non-existent account', async ({ request }) => {
-  const apiClient = new ApiClient(request);
-  const transactionService = new TransactionService(apiClient);
+test('should reject transactions for a non-existent account', async ({ transactionService }) => {
 
   const response =
     await transactionService.getTransactions(999999999);
