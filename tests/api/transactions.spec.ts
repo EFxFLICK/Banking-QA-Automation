@@ -26,4 +26,23 @@ test.describe('Transaction API', () => {
       expect(typeof transaction.amount).toBe('number');
     }
   });
+
+  test('should return typed transaction models', async ({ request }) => {
+  const apiClient = new ApiClient(request);
+  const transactionService = new TransactionService(apiClient);
+
+  const transactions =
+    await transactionService.getTransactionData(54321);
+
+  expect(transactions.length).toBeGreaterThan(0);
+
+  for (const transaction of transactions) {
+    expect(transaction.accountId).toBe(54321);
+    expect(typeof transaction.id).toBe('number');
+    expect(typeof transaction.type).toBe('string');
+    expect(typeof transaction.date).toBe('number');
+    expect(typeof transaction.amount).toBe('number');
+    expect(typeof transaction.description).toBe('string');
+  }
+});
 });

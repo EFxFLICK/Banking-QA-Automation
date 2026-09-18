@@ -1,5 +1,6 @@
 import { APIResponse } from '@playwright/test';
 import { ApiClient } from '../clients/api-client';
+import { Transaction } from '../models/transaction';
 
 export class TransactionService {
   public constructor(
@@ -15,5 +16,19 @@ export class TransactionService {
         Accept: 'application/json'
       }
     );
+  }
+
+  public async getTransactionData(
+    accountId: number
+  ): Promise<Transaction[]> {
+    const response = await this.getTransactions(accountId);
+
+    if (!response.ok()) {
+      throw new Error(
+        `Failed to retrieve transactions for account ${accountId}: HTTP ${response.status()}`
+      );
+    }
+
+    return response.json() as Promise<Transaction[]>;
   }
 }

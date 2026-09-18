@@ -1,5 +1,6 @@
 import { APIResponse } from '@playwright/test';
 import { ApiClient } from '../clients/api-client';
+import { Customer } from '../models/customer';
 
 export class CustomerService {
   public constructor(
@@ -15,5 +16,19 @@ export class CustomerService {
         Accept: 'application/json'
       }
     );
+  }
+
+  public async getCustomerData(
+    customerId: number
+  ): Promise<Customer> {
+    const response = await this.getCustomer(customerId);
+
+    if (!response.ok()) {
+      throw new Error(
+        `Failed to retrieve customer ${customerId}: HTTP ${response.status()}`
+      );
+    }
+
+    return response.json() as Promise<Customer>;
   }
 }

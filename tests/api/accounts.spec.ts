@@ -35,4 +35,16 @@ test.describe('Account API', () => {
   expect(responseBody).toBe('Could not find account #999999999');
 });
 
+test('should return a typed account model', async ({ request }) => {
+  const apiClient = new ApiClient(request);
+  const accountService = new AccountService(apiClient);
+
+  const account = await accountService.getAccountData(54321);
+
+  expect(account.id).toBe(54321);
+  expect(account.customerId).toBe(12212);
+  expect(account.type).toBe('CHECKING');
+  expect(typeof account.balance).toBe('number');
+});
+
 });
