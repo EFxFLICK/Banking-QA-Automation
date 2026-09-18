@@ -22,4 +22,17 @@ test.describe('Account API', () => {
 
     expect(typeof account.balance).toBe('number');
   });
+
+  test('should reject a request for a non-existent account', async ({ request }) => {
+  const apiClient = new ApiClient(request);
+  const accountService = new AccountService(apiClient);
+
+  const response = await accountService.getAccount(999999999);
+  const responseBody = await response.text();
+
+  expect(response.status()).toBe(400);
+  expect(response.headers()['content-type']).toContain('text/plain');
+  expect(responseBody).toBe('Could not find account #999999999');
+});
+
 });
