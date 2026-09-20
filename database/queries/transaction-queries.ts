@@ -165,4 +165,81 @@ public async getLatestTransferReceived(
   };
 }
 
+public async getMatchingTransferPair(
+  sourceAccountId: number,
+  destinationAccountId: number
+): Promise<{
+  sent: TransactionDbRecord;
+  received: TransactionDbRecord;
+}> {
+  const rows = await this.databaseClient.query(
+    `SELECT
+       sent.ID AS SENT_ID,
+       sent.ACCOUNT_ID AS SENT_ACCOUNT_ID,
+       sent.TYPE AS SENT_TYPE,
+       sent.DATE AS SENT_DATE,
+       sent.AMOUNT AS SENT_AMOUNT,
+       sent.DESCRIPTION AS SENT_DESCRIPTION,
+       received.ID AS RECEIVED_ID,
+       received.ACCOUNT_ID AS RECEIVED_ACCOUNT_ID,
+       received.TYPE AS RECEIVED_TYPE,
+       received.DATE AS RECEIVED_DATE,
+       received.AMOUNT AS RECEIVED_AMOUNT,
+       received.DESCRIPTION AS RECEIVED_DESCRIPTION
+     FROM TRANSACTION sent
+     INNER JOIN TRANSACTION received
+       ON sent.AMOUNT = received.AMOUNT
+     WHERE sent.ACCOUNT_ID = ${sourceAccountId}
+       AND sent.DESCRIPTION = 'Funds Transfer Sent'
+       AND received.ACCOUNT_ID = ${destinationAccountId}
+       AND received.DESCRIPTION = 'Funds Transfer Received'
+     ORDER BY sent.ID DESC, received.ID DESC`
+  );
+
+  if (rows.length === 0) {
+    throw new Error(
+      `No matching transfer found from account ${sourceAccountId} to account ${destinationAccountId}`
+    );
+  }
+
+  const row = rows[0];
+
+  return {
+    sent: {
+      id: this.parseInteger(row.SENT_ID, 'SENT_ID'),
+      accountId: this.parseInteger(
+        row.SENT_ACCOUNT_ID,
+        'SENT_ACCOUNT_ID'
+      ),
+      type: this.parseInteger(row.SENT_TYPE, 'SENT_TYPE'),
+      date: row.SENT_DATE,
+      amount: this.parseNumber(
+        row.SENT_AMOUNT,
+        'SENT_AMOUNT'
+      ),
+      description: row.SENT_DESCRIPTION
+    },
+    received: {
+      id: this.parseInteger(
+        row.RECEIVED_ID,
+        'RECEIVED_ID'
+      ),
+      accountId: this.parseInteger(
+        row.RECEIVED_ACCOUNT_ID,
+        'RECEIVED_ACCOUNT_ID'
+      ),
+      type: this.parseInteger(
+        row.RECEIVED_TYPE,
+        'RECEIVED_TYPE'
+      ),
+      date: row.RECEIVED_DATE,
+      amount: this.parseNumber(
+        row.RECEIVED_AMOUNT,
+        'RECEIVED_AMOUNT'
+      ),
+      description: row.RECEIVED_DESCRIPTION
+    }
+  };
+}
+
 }

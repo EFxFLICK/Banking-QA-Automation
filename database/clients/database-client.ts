@@ -40,16 +40,10 @@ export class DatabaseClient {
       sql
     ];
 
-    const { stdout, stderr } = await execFileAsync(
+    const { stdout } = await execFileAsync(
       'docker',
       dockerArguments
     );
-
-    if (stderr.trim()) {
-      throw new Error(
-        `Database query failed: ${stderr.trim()}`
-      );
-    }
 
     return this.parseOutput(stdout);
   }

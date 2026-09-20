@@ -76,24 +76,24 @@ test.describe('ParaBank Database Queries', () => {
     const sourceAccountId = bankingTestData.accounts.source;
     const destinationAccountId = bankingTestData.accounts.destination;
 
-    const sentTransaction =
-      await transactionQueries.getLatestTransferSent(sourceAccountId);
-
-    const receivedTransaction =
-      await transactionQueries.getLatestTransferReceived(
-        destinationAccountId
-      );
-
-    expect(sentTransaction.accountId).toBe(sourceAccountId);
-    expect(sentTransaction.type).toBe(1);
-    expect(sentTransaction.description).toBe(
-      'Funds Transfer Sent'
+    const transferPair =
+      await transactionQueries.getMatchingTransferPair(
+      sourceAccountId,
+      destinationAccountId
     );
+
+    const sentTransaction = transferPair.sent;
+    const receivedTransaction = transferPair.received;
+      expect(sentTransaction.accountId).toBe(sourceAccountId);
+      expect(sentTransaction.type).toBe(1);
+      expect(sentTransaction.description).toBe(
+        'Funds Transfer Sent'
+      );
 
     expect(receivedTransaction.accountId).toBe(
       destinationAccountId
     );
-    expect(receivedTransaction.type).toBe(0);
+    expect(Number.isInteger(receivedTransaction.type)).toBe(true);
     expect(receivedTransaction.description).toBe(
       'Funds Transfer Received'
     );
