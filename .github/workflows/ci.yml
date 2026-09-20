@@ -1,0 +1,75 @@
+name: Banking QA Automation CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start ParaBank
+        run: docker compose up -d
+
+      - name: Wait for ParaBank
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://localhost:8080/parabank/index.htm > /dev/null; then
+              echo "ParaBank is ready"
+              exit 0
+            fi
+
+            echo "Waiting for ParaBank..."
+            sleep 2
+          done
+
+          echo "ParaBank did not become ready"
+          docker compose logs
+          exit 1
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          if-no-files-found: ignore
+
+      - name: ParaBank logs
+        if: always()
+        run: docker compose logs
