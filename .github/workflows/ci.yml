@@ -48,6 +48,26 @@ jobs:
           docker compose logs
           exit 1
 
+      - name: Verify ParaBank seed data
+        run: |
+          echo "=== Customer 12212 ==="
+          curl --silent --show-error \
+            http://localhost:8080/parabank/services/bank/customers/12212
+
+          echo
+          echo "=== Accounts for customer 12212 ==="
+          curl --silent --show-error \
+            http://localhost:8080/parabank/services/bank/customers/12212/accounts
+
+          echo
+          echo "=== Account 54321 ==="
+          curl --silent --show-error \
+            http://localhost:8080/parabank/services/bank/accounts/54321
+
+          echo
+          echo "=== ParaBank container status ==="
+          docker compose ps
+
       - name: Typecheck
         run: npm run typecheck
 
