@@ -35,8 +35,8 @@ export class DatabaseClient {
       this.dockerImage,
       'java',
       '-cp',
-      '/work/hsqldb-2.7.4.jar:/work',
-      'HsqlDbClient',
+      '/work/hsqldb-2.7.4.jar',
+      '/work/HsqlDbClient.java',
       sql
     ];
 
