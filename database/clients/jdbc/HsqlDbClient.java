@@ -51,6 +51,8 @@ public final class HsqlDbClient {
             + "/"
             + database;
 
+            Class.forName("org.hsqldb.jdbc.JDBCDriver");
+
         try (Connection connection = DriverManager.getConnection(
                 jdbcUrl,
                 user,
