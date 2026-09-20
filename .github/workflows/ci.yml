@@ -54,6 +54,14 @@ jobs:
             --request POST \
             http://localhost:8080/parabank/services/bank/initializeDB
 
+      - name: Prepare HSQLDB JDBC driver
+        run: |
+          docker cp \
+            parabank:/usr/local/tomcat/webapps/parabank/WEB-INF/lib/hsqldb-2.7.4.jar \
+            database/clients/jdbc/hsqldb-2.7.4.jar
+
+          ls -lh database/clients/jdbc/hsqldb-2.7.4.jar
+
       - name: Verify ParaBank seed data
         run: |
           echo "=== Customer 12212 ==="
