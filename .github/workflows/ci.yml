@@ -48,6 +48,12 @@ jobs:
           docker compose logs
           exit 1
 
+      - name: Initialize ParaBank database
+        run: |
+          curl --fail --silent --show-error \
+            --request POST \
+            http://localhost:8080/parabank/services/bank/initializeDB
+
       - name: Verify ParaBank seed data
         run: |
           echo "=== Customer 12212 ==="
