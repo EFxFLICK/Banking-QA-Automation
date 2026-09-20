@@ -16,9 +16,25 @@ export default defineConfig({
     headless: true
   },
   projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] }
-    }
-  ]
+  {
+    name: 'chromium',
+    testIgnore: [
+      '**/api/transfers.spec.ts',
+      '**/ui/transfer-funds.spec.ts',
+      '**/integration/transfer-e2e.spec.ts'
+    ],
+    use: { ...devices['Desktop Chrome'] }
+  },
+  {
+    name: 'chromium-stateful',
+    testMatch: [
+      '**/api/transfers.spec.ts',
+      '**/ui/transfer-funds.spec.ts',
+      '**/integration/transfer-e2e.spec.ts'
+    ],
+    fullyParallel: false,
+    workers: 1,
+    use: { ...devices['Desktop Chrome'] }
+  }
+]
 });
