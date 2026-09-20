@@ -9,20 +9,8 @@ export interface DatabaseRow {
 }
 
 export class DatabaseClient {
-  private readonly javaSourcePath =
-    'database/clients/jdbc/HsqlDbClient.java';
-
-  private readonly jdbcJarPath =
-    'database/clients/jdbc/hsqldb-2.7.4.jar';
-
-  private readonly javaClassPath =
-    'database/clients/jdbc';
-
   private readonly dockerImage =
     'eclipse-temurin:21-jdk';
-
-  private readonly dockerNetwork =
-    'banking-qa-automation_default';
 
   public async query(
     sql: string
@@ -31,9 +19,9 @@ export class DatabaseClient {
       'run',
       '--rm',
       '--network',
-      this.dockerNetwork,
+      'container:parabank',
       '-e',
-      `DB_HOST=parabank`,
+      'DB_HOST=localhost',
       '-e',
       `DB_PORT=${env.dbPort}`,
       '-e',
@@ -103,7 +91,10 @@ export class DatabaseClient {
         const key = column.slice(0, separatorIndex);
         const value = column.slice(separatorIndex + 1);
 
-        return [key, value === 'null' ? null : value];
+        return [
+          key,
+          value === 'null' ? null : value
+        ];
       })
     );
   }
