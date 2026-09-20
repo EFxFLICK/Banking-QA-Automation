@@ -63,4 +63,109 @@ test.describe('Transfer Funds', () => {
       2
     );
   });
+
+  test('should not complete a transfer with an empty amount', async ({
+  page
+}) => {
+  const loginPage = new LoginPage(page);
+  const accountsOverviewPage = new AccountsOverviewPage(page);
+  const transferFundsPage = new TransferFundsPage(page);
+
+  await loginPage.goto();
+  await loginPage.login('john', 'demo');
+
+  await accountsOverviewPage.clickTransferFunds();
+  await transferFundsPage.expectPageVisible();
+
+  await transferFundsPage.transfer(54321, 13122, '');
+
+  await expect(page).not.toHaveURL(/.*overview\.htm/);
+
+  await expect(
+    page.getByRole('heading', { name: 'Transfer Complete!' })
+  ).not.toBeVisible();
+});
+
+test('should not complete a transfer with an invalid amount format', async ({
+  page
+}) => {
+  const loginPage = new LoginPage(page);
+  const accountsOverviewPage = new AccountsOverviewPage(page);
+  const transferFundsPage = new TransferFundsPage(page);
+
+  await loginPage.goto();
+  await loginPage.login('john', 'demo');
+
+  await accountsOverviewPage.clickTransferFunds();
+  await transferFundsPage.expectPageVisible();
+
+  await transferFundsPage.transfer(54321, 13122, 'abc');
+
+  await expect(page).not.toHaveURL(/.*overview\.htm/);
+
+  await expect(
+    page.getByRole('heading', { name: 'Transfer Complete!' })
+  ).not.toBeVisible();
+});
+
+test('should complete a zero-amount transfer according to application behavior', async ({
+  page
+}) => {
+  const loginPage = new LoginPage(page);
+  const accountsOverviewPage = new AccountsOverviewPage(page);
+  const transferFundsPage = new TransferFundsPage(page);
+
+  const fromAccountId = 54321;
+  const toAccountId = 13122;
+  const transferAmount = 0;
+
+  await loginPage.goto();
+  await loginPage.login('john', 'demo');
+
+  await accountsOverviewPage.clickTransferFunds();
+  await transferFundsPage.expectPageVisible();
+
+  await transferFundsPage.transfer(
+    fromAccountId,
+    toAccountId,
+    transferAmount
+  );
+
+  await transferFundsPage.expectTransferComplete(
+    transferAmount,
+    fromAccountId,
+    toAccountId
+  );
+});
+
+test('should complete a negative-amount transfer according to application behavior', async ({
+  page
+}) => {
+  const loginPage = new LoginPage(page);
+  const accountsOverviewPage = new AccountsOverviewPage(page);
+  const transferFundsPage = new TransferFundsPage(page);
+
+  const fromAccountId = 54321;
+  const toAccountId = 13122;
+  const transferAmount = -1;
+
+  await loginPage.goto();
+  await loginPage.login('john', 'demo');
+
+  await accountsOverviewPage.clickTransferFunds();
+  await transferFundsPage.expectPageVisible();
+
+  await transferFundsPage.transfer(
+    fromAccountId,
+    toAccountId,
+    transferAmount
+  );
+
+  await transferFundsPage.expectTransferComplete(
+    transferAmount,
+    fromAccountId,
+    toAccountId
+  );
+});
+
 });

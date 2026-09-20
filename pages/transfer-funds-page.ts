@@ -47,7 +47,7 @@ export class TransferFundsPage {
   public async transfer(
     fromAccountId: number,
     toAccountId: number,
-    amount: number
+    amount: number | string
   ): Promise<void> {
     await this.fromAccountSelect.selectOption(
       String(fromAccountId)
@@ -63,14 +63,19 @@ export class TransferFundsPage {
   }
 
   public async expectTransferComplete(
-    amount: number,
-    fromAccountId: number,
-    toAccountId: number
-  ): Promise<void> {
-      await expect(this.transferCompleteHeading).toBeVisible();
+  amount: number,
+  fromAccountId: number,
+  toAccountId: number
+): Promise<void> {
+  await expect(this.transferCompleteHeading).toBeVisible();
 
-      await expect(this.transferResultMessage).toHaveText(
-        `$${amount.toFixed(2)} has been transferred from account #${fromAccountId} to account #${toAccountId}.`
-     );
-  }
+  const formattedAmount =
+    amount < 0
+      ? `-$${Math.abs(amount).toFixed(2)}`
+      : `$${amount.toFixed(2)}`;
+
+  await expect(this.transferResultMessage).toHaveText(
+    `${formattedAmount} has been transferred from account #${fromAccountId} to account #${toAccountId}.`
+  );
+}
 }
