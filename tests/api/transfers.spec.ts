@@ -1,17 +1,18 @@
 import { test, expect } from '../../fixtures/api.fixture';
 import { SchemaValidator } from '../../utils/schema-validator';
 import { transferResponseSchema } from '../../schemas/transfer-response.schema';
+import { bankingTestData } from '../../test-data/banking-test-data';
 
 test.describe.configure({ mode: 'serial' });
+
 test.describe('Transfer API', () => {
   test('should transfer money between existing accounts', async ({
     accountService,
     transferService
   }) => {
-
-    const fromAccountId = 54321;
-    const toAccountId = 13122;
-    const transferAmount = 1;
+    const fromAccountId = bankingTestData.accounts.source;
+    const toAccountId = bankingTestData.accounts.destination;
+    const transferAmount = bankingTestData.transfer.standardAmount;
 
     const sourceBeforeResponse =
       await accountService.getAccount(fromAccountId);
@@ -39,7 +40,7 @@ test.describe('Transfer API', () => {
 
     const schemaValidator: SchemaValidator = new SchemaValidator();
 
-      schemaValidator.assertValid(
+    schemaValidator.assertValid(
       transferResponseSchema,
       transferBody
     );
@@ -65,36 +66,34 @@ test.describe('Transfer API', () => {
       targetBefore.balance + transferAmount,
       2
     );
-  
   });
 
   test('should reject a transfer from a non-existent source account', async ({
     transferService
   }) => {
+    const response = await transferService.transfer(
+      999999999,
+      bankingTestData.accounts.destination,
+      bankingTestData.transfer.standardAmount
+    );
 
-  const response = await transferService.transfer(
-    999999999,
-    13122,
-    1
-  );
+    const responseBody = await response.text();
 
-  const responseBody = await response.text();
+    expect(response.status()).toBe(400);
+    expect(response.headers()['content-type']).toContain('text/plain');
 
-  expect(response.status()).toBe(400);
-  expect(response.headers()['content-type']).toContain('text/plain');
-  expect(responseBody).toBe(
-    'Could not find account number 999999999 and/or 13122'
-  );
-});
+    expect(responseBody).toBe(
+      `Could not find account number 999999999 and/or ${bankingTestData.accounts.destination}`
+    );
+  });
 
   test('should accept a zero-amount transfer without changing balances', async ({
     transferService,
-     accountService,
+    accountService
   }) => {
-
-    const fromAccountId = 54321;
-    const toAccountId = 13122;
-    const transferAmount = 0;
+    const fromAccountId = bankingTestData.accounts.source;
+    const toAccountId = bankingTestData.accounts.destination;
+    const transferAmount = bankingTestData.transfer.zeroAmount;
 
     const sourceBeforeResponse =
       await accountService.getAccount(fromAccountId);
@@ -121,20 +120,20 @@ test.describe('Transfer API', () => {
 
     const schemaValidator: SchemaValidator = new SchemaValidator();
 
-      schemaValidator.assertValid(
+    schemaValidator.assertValid(
       transferResponseSchema,
       responseBody
-      );
+    );
 
     expect(responseBody).toBe(
-      'Successfully transferred $0 from account #54321 to account #13122'
+      `Successfully transferred $0 from account #${fromAccountId} to account #${toAccountId}`
     );
 
     const sourceAfterResponse =
-     await accountService.getAccount(fromAccountId);
+      await accountService.getAccount(fromAccountId);
 
     const targetAfterResponse =
-     await accountService.getAccount(toAccountId);
+      await accountService.getAccount(toAccountId);
 
     expect(sourceAfterResponse.status()).toBe(200);
     expect(targetAfterResponse.status()).toBe(200);
@@ -150,26 +149,26 @@ test.describe('Transfer API', () => {
     accountService,
     transferService
   }) => {
-    const fromAccountId = 54321;
-    const toAccountId = 13122;
-    const transferAmount = -1;
+    const fromAccountId = bankingTestData.accounts.source;
+    const toAccountId = bankingTestData.accounts.destination;
+    const transferAmount = bankingTestData.transfer.negativeAmount;
 
     const sourceBeforeResponse =
-     await accountService.getAccount(fromAccountId);
+      await accountService.getAccount(fromAccountId);
 
     const targetBeforeResponse =
-     await accountService.getAccount(toAccountId);
+      await accountService.getAccount(toAccountId);
 
     expect(sourceBeforeResponse.status()).toBe(200);
     expect(targetBeforeResponse.status()).toBe(200);
 
-   const sourceBefore = await sourceBeforeResponse.json();
-   const targetBefore = await targetBeforeResponse.json();
+    const sourceBefore = await sourceBeforeResponse.json();
+    const targetBefore = await targetBeforeResponse.json();
 
-   const response = await transferService.transfer(
+    const response = await transferService.transfer(
       fromAccountId,
-     toAccountId,
-     transferAmount
+      toAccountId,
+      transferAmount
     );
 
     const responseBody = await response.text();
@@ -178,17 +177,17 @@ test.describe('Transfer API', () => {
 
     const schemaValidator: SchemaValidator = new SchemaValidator();
 
-      schemaValidator.assertValid(
+    schemaValidator.assertValid(
       transferResponseSchema,
       responseBody
     );
 
     expect(responseBody).toBe(
-      'Successfully transferred $-1 from account #54321 to account #13122'
+      `Successfully transferred $-1 from account #${fromAccountId} to account #${toAccountId}`
     );
 
     const sourceAfterResponse =
-     await accountService.getAccount(fromAccountId);
+      await accountService.getAccount(fromAccountId);
 
     const targetAfterResponse =
       await accountService.getAccount(toAccountId);

@@ -5,6 +5,7 @@ import { TransferFundsPage } from '../../pages/transfer-funds-page';
 import { DatabaseClient } from '../../database/clients/database-client';
 import { AccountQueries } from '../../database/queries/account-queries';
 import { TransactionQueries } from '../../database/queries/transaction-queries';
+import { bankingTestData } from '../../test-data/banking-test-data';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -13,25 +14,32 @@ test.describe('Banking Transfer UI API DB Integration', () => {
     page,
     accountService
   }) => {
-    const sourceAccountId = 54321;
-    const destinationAccountId = 13122;
-    const transferAmount = 1;
+    const sourceAccountId = bankingTestData.accounts.source;
+    const destinationAccountId = bankingTestData.accounts.destination;
+    const transferAmount = bankingTestData.transfer.standardAmount;
 
     const databaseClient = new DatabaseClient();
     const accountQueries = new AccountQueries(databaseClient);
     const transactionQueries = new TransactionQueries(databaseClient);
 
     // Arrange: capture initial database state
-    const sourceBefore = await accountQueries.getAccount(sourceAccountId);
+    const sourceBefore =
+      await accountQueries.getAccount(sourceAccountId);
+
     const sourceTransactionBefore =
       await transactionQueries.getLatestTransferSent(sourceAccountId);
 
     const destinationTransactionBefore =
-      await transactionQueries.getLatestTransferReceived(destinationAccountId);
+      await transactionQueries.getLatestTransferReceived(
+        destinationAccountId
+      );
+
     const destinationBefore =
       await accountQueries.getAccount(destinationAccountId);
 
-    expect(sourceBefore.balance).toBeGreaterThanOrEqual(transferAmount);
+    expect(sourceBefore.balance).toBeGreaterThanOrEqual(
+      transferAmount
+    );
 
     // Act: perform the transfer through the UI
     const loginPage = new LoginPage(page);
@@ -39,7 +47,11 @@ test.describe('Banking Transfer UI API DB Integration', () => {
     const transferFundsPage = new TransferFundsPage(page);
 
     await loginPage.goto();
-    await loginPage.login('john', 'demo');
+
+    await loginPage.login(
+      bankingTestData.user.username,
+      bankingTestData.user.password
+    );
 
     await accountsOverviewPage.clickTransferFunds();
     await transferFundsPage.expectPageVisible();
@@ -57,7 +69,9 @@ test.describe('Banking Transfer UI API DB Integration', () => {
     );
 
     // Assert: database balance state
-    const sourceAfter = await accountQueries.getAccount(sourceAccountId);
+    const sourceAfter =
+      await accountQueries.getAccount(sourceAccountId);
+
     const destinationAfter =
       await accountQueries.getAccount(destinationAccountId);
 
@@ -73,27 +87,33 @@ test.describe('Banking Transfer UI API DB Integration', () => {
 
     // Assert: database transaction state
     const sentTransaction =
-  await transactionQueries.getLatestTransferSent(sourceAccountId);
+      await transactionQueries.getLatestTransferSent(
+        sourceAccountId
+      );
 
-const receivedTransaction =
-  await transactionQueries.getLatestTransferReceived(
-    destinationAccountId
-  );
+    const receivedTransaction =
+      await transactionQueries.getLatestTransferReceived(
+        destinationAccountId
+      );
 
-expect(sentTransaction.id).toBeGreaterThan(
-  sourceTransactionBefore.id
-);
+    expect(sentTransaction.id).toBeGreaterThan(
+      sourceTransactionBefore.id
+    );
 
-expect(receivedTransaction.id).toBeGreaterThan(
-  destinationTransactionBefore.id
-);
+    expect(receivedTransaction.id).toBeGreaterThan(
+      destinationTransactionBefore.id
+    );
 
     expect(sentTransaction.accountId).toBe(sourceAccountId);
     expect(sentTransaction.type).toBe(1);
     expect(sentTransaction.amount).toBe(transferAmount);
-    expect(sentTransaction.description).toBe('Funds Transfer Sent');
+    expect(sentTransaction.description).toBe(
+      'Funds Transfer Sent'
+    );
 
-    expect(receivedTransaction.accountId).toBe(destinationAccountId);
+    expect(receivedTransaction.accountId).toBe(
+      destinationAccountId
+    );
     expect(receivedTransaction.type).toBe(0);
     expect(receivedTransaction.amount).toBe(transferAmount);
     expect(receivedTransaction.description).toBe(

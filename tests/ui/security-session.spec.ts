@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../../pages/login-page';
 import { AccountsOverviewPage } from '../../pages/accounts-overview-page';
+import { bankingTestData } from '../../test-data/banking-test-data';
+
 
 test.describe('Security - Session Handling', () => {
   test('should terminate the authenticated session after logout', async ({
@@ -10,7 +12,10 @@ test.describe('Security - Session Handling', () => {
     const accountsOverviewPage = new AccountsOverviewPage(page);
 
     await loginPage.goto();
-    await loginPage.login('john', 'demo');
+    await loginPage.login(
+      bankingTestData.user.username,
+      bankingTestData.user.password
+    );
 
     await expect(page).toHaveURL(/.*overview\.htm/);
     await expect(

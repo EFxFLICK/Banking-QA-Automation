@@ -1,6 +1,8 @@
 import { test } from '@playwright/test';
 import { LoginPage } from '../../pages/login-page';
 import { AccountsOverviewPage } from '../../pages/accounts-overview-page';
+import { bankingTestData } from '../../test-data/banking-test-data';
+
 
 test.describe('Accounts Overview', () => {
   test('should display the customer accounts after login', async ({
@@ -10,11 +12,19 @@ test.describe('Accounts Overview', () => {
     const accountsOverviewPage = new AccountsOverviewPage(page);
 
     await loginPage.goto();
-    await loginPage.login('john', 'demo');
+    await loginPage.login(
+      bankingTestData.user.username,
+      bankingTestData.user.password
+    );
 
     await accountsOverviewPage.expectPageVisible();
 
-    await accountsOverviewPage.expectAccountVisible(54321);
-    await accountsOverviewPage.expectAccountVisible(13122);
+    await accountsOverviewPage.expectAccountVisible(
+      bankingTestData.accounts.source
+    );
+
+    await accountsOverviewPage.expectAccountVisible(
+     bankingTestData.accounts.destination
+    );
   });
 });

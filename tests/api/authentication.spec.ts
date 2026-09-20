@@ -1,13 +1,17 @@
 import { test, expect } from '../../fixtures/api.fixture';
 import { SchemaValidator } from '../../utils/schema-validator';
 import { customerSchema } from '../../schemas/customer.schema';
+import { bankingTestData } from '../../test-data/banking-test-data';
 
 test.describe('Authentication API', () => {
   test('should authenticate with valid credentials', async ({
     authenticationService
   }) => {
 
-    const response = await authenticationService.login('john', 'demo');
+    const response = await authenticationService.login(
+      bankingTestData.user.username,
+      bankingTestData.user.password
+    );
     const responseBody = await response.json();
 
     expect(response.status()).toBe(200);
@@ -28,30 +32,29 @@ test.describe('Authentication API', () => {
   });
 
   test('should reject invalid password', async ({ authenticationService }) => {
+  const response = await authenticationService.login(
+    bankingTestData.user.username,
+    'wrongpassword'
+  );
 
-    const response = await authenticationService.login(
-      'john',
-      'wrongpassword'
-    );
+  const responseBody = await response.text();
 
-    const responseBody = await response.text();
+  expect(response.status()).toBe(400);
+  expect(response.headers()['content-type']).toContain('text/plain');
+  expect(responseBody).toBe('Invalid username and/or password');
+});
 
-    expect(response.status()).toBe(400);
-    expect(response.headers()['content-type']).toContain('text/plain');
-    expect(responseBody).toBe('Invalid username and/or password');
-  });
+test('should reject an unknown username', async ({ authenticationService }) => {
+  const response = await authenticationService.login(
+    'unknownuser',
+    bankingTestData.user.password
+  );
 
-  test('should reject an unknown username', async ({ authenticationService }) => {
+  const responseBody = await response.text();
 
-    const response = await authenticationService.login(
-      'unknownuser',
-      'demo'
-    );
+  expect(response.status()).toBe(400);
+  expect(response.headers()['content-type']).toContain('text/plain');
+  expect(responseBody).toBe('Invalid username and/or password');
+});
 
-    const responseBody = await response.text();
-
-    expect(response.status()).toBe(400);
-    expect(response.headers()['content-type']).toContain('text/plain');
-    expect(responseBody).toBe('Invalid username and/or password');
-  });
 });

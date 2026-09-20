@@ -2,6 +2,7 @@ import { test, expect } from '../../fixtures/api.fixture';
 import { LoginPage } from '../../pages/login-page';
 import { AccountsOverviewPage } from '../../pages/accounts-overview-page';
 import { TransferFundsPage } from '../../pages/transfer-funds-page';
+import { bankingTestData } from '../../test-data/banking-test-data';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -10,9 +11,9 @@ test.describe('Transfer Funds', () => {
     page,
     accountService
   }) => {
-    const fromAccountId = 54321;
-    const toAccountId = 13122;
-    const transferAmount = 1;
+    const fromAccountId = bankingTestData.accounts.source;
+    const toAccountId = bankingTestData.accounts.destination;
+    const transferAmount = bankingTestData.transfer.standardAmount;
 
     const sourceBefore = await accountService.getAccountData(
       fromAccountId
@@ -27,7 +28,10 @@ test.describe('Transfer Funds', () => {
     const transferFundsPage = new TransferFundsPage(page);
 
     await loginPage.goto();
-    await loginPage.login('john', 'demo');
+    await loginPage.login(
+  bankingTestData.user.username,
+  bankingTestData.user.password
+);
 
     await accountsOverviewPage.clickTransferFunds();
 
@@ -72,12 +76,19 @@ test.describe('Transfer Funds', () => {
   const transferFundsPage = new TransferFundsPage(page);
 
   await loginPage.goto();
-  await loginPage.login('john', 'demo');
+  await loginPage.login(
+  bankingTestData.user.username,
+  bankingTestData.user.password
+);
 
   await accountsOverviewPage.clickTransferFunds();
   await transferFundsPage.expectPageVisible();
 
-  await transferFundsPage.transfer(54321, 13122, '');
+  await transferFundsPage.transfer(
+    bankingTestData.accounts.source,
+    bankingTestData.accounts.destination,
+    bankingTestData.transfer.emptyAmount
+  );
 
   await expect(page).not.toHaveURL(/.*overview\.htm/);
 
@@ -94,12 +105,19 @@ test('should not complete a transfer with an invalid amount format', async ({
   const transferFundsPage = new TransferFundsPage(page);
 
   await loginPage.goto();
-  await loginPage.login('john', 'demo');
+  await loginPage.login(
+  bankingTestData.user.username,
+  bankingTestData.user.password
+);
 
   await accountsOverviewPage.clickTransferFunds();
   await transferFundsPage.expectPageVisible();
 
-  await transferFundsPage.transfer(54321, 13122, 'abc');
+  await transferFundsPage.transfer(
+    bankingTestData.accounts.source,
+    bankingTestData.accounts.destination,
+    bankingTestData.transfer.invalidFormat
+  );
 
   await expect(page).not.toHaveURL(/.*overview\.htm/);
 
@@ -115,12 +133,15 @@ test('should complete a zero-amount transfer according to application behavior',
   const accountsOverviewPage = new AccountsOverviewPage(page);
   const transferFundsPage = new TransferFundsPage(page);
 
-  const fromAccountId = 54321;
-  const toAccountId = 13122;
-  const transferAmount = 0;
+  const fromAccountId = bankingTestData.accounts.source;
+  const toAccountId = bankingTestData.accounts.destination;
+  const transferAmount = bankingTestData.transfer.zeroAmount;
 
   await loginPage.goto();
-  await loginPage.login('john', 'demo');
+  await loginPage.login(
+  bankingTestData.user.username,
+  bankingTestData.user.password
+);
 
   await accountsOverviewPage.clickTransferFunds();
   await transferFundsPage.expectPageVisible();
@@ -145,12 +166,14 @@ test('should complete a negative-amount transfer according to application behavi
   const accountsOverviewPage = new AccountsOverviewPage(page);
   const transferFundsPage = new TransferFundsPage(page);
 
-  const fromAccountId = 54321;
-  const toAccountId = 13122;
-  const transferAmount = -1;
-
+  const fromAccountId = bankingTestData.accounts.source;
+  const toAccountId = bankingTestData.accounts.destination;
+  const transferAmount = bankingTestData.transfer.negativeAmount;
   await loginPage.goto();
-  await loginPage.login('john', 'demo');
+  await loginPage.login(
+  bankingTestData.user.username,
+  bankingTestData.user.password
+);
 
   await accountsOverviewPage.clickTransferFunds();
   await transferFundsPage.expectPageVisible();

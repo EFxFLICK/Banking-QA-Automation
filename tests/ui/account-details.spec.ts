@@ -2,13 +2,15 @@ import { test } from '../../fixtures/api.fixture';
 import { LoginPage } from '../../pages/login-page';
 import { AccountsOverviewPage } from '../../pages/accounts-overview-page';
 import { AccountDetailsPage } from '../../pages/account-details-page';
+import { bankingTestData } from '../../test-data/banking-test-data';
+
 
 test.describe('Account Details', () => {
   test('should display account details and transaction table', async ({
     page,
     accountService
   }) => {
-    const accountId = 54321;
+    const accountId = bankingTestData.accounts.source;
 
     const account = await accountService.getAccountData(accountId);
 
@@ -17,7 +19,10 @@ test.describe('Account Details', () => {
     const accountDetailsPage = new AccountDetailsPage(page);
 
     await loginPage.goto();
-    await loginPage.login('john', 'demo');
+    await loginPage.login(
+      bankingTestData.user.username,
+      bankingTestData.user.password
+    );
 
     await accountsOverviewPage.clickAccount(accountId);
 
