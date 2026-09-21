@@ -1,5 +1,9 @@
 # 🏦 Banking QA Automation Framework
 
+[![Banking QA Automation CI](https://github.com/EFxFLICK/Banking-QA-Automation/actions/workflows/ci.yml/badge.svg)](https://github.com/EFxFLICK/Banking-QA-Automation/actions/workflows/ci.yml)
+
+> **37 automated tests | UI + REST API + Database + Integration | Docker | Allure | GitHub Actions**
+
 Production-style end-to-end QA automation framework for testing a banking application across **UI, REST API, database, and integration layers**.
 
 The framework uses **Playwright + TypeScript** and runs against a reproducible Dockerized ParaBank environment. It validates functional behavior, API contracts, database state, financial transaction integrity, and security-oriented negative scenarios.
